@@ -24,13 +24,13 @@ class DogAdoptionController {
         this.publisher = publisher;
     }
 
-    @GetMapping("/")
+    @GetMapping("/dogs")
     Collection<Dog> getDogs() {
         return this.dogRepository.findAll();
     }
 
     @PostMapping("/dogs/{dogId}/adoptions")
-    void adopt(@PathVariable int dogId,
+    void adopt(@PathVariable Integer dogId,
                @RequestBody Map<String, String> owner) {
         this.dogRepository
                 .findById(dogId)

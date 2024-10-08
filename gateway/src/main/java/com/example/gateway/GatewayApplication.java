@@ -13,15 +13,22 @@ public class GatewayApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(GatewayApplication.class, args);
 	}
-	
+
 	@Bean
 	RouteLocator gateway(RouteLocatorBuilder rlb) {
 		return rlb
 				.routes()
 				.route(rs -> rs
-						.path("/")
-						.filters(GatewayFilterSpec::tokenRelay)
-						.uri("http://localhost:8080/"))
+						.path("/api/**")
+						.filters(f -> f
+								.tokenRelay()
+								.rewritePath("/api/(?<segment>.*)", "/$\\{segment}")
+						)
+						.uri("http://localhost:8080"))
+				.route(rs -> rs
+						.path("/**")
+						.uri("http://localhost:8020")
+				)
 				.build();
 	}
 }
