@@ -89,7 +89,6 @@
 
     <script>
         function greetings( user) {
-            
             const greetingDiv = document.getElementById('greeting')  ;
             greetingDiv.textContent = `Hello, ${user.name}!`;
         }
@@ -132,6 +131,7 @@
             });
         }
 
+        
         document.addEventListener('DOMContentLoaded', async () => {
             // Fetch and display user information
             const user = (await (await fetch('/api/me')).json()) 
@@ -151,7 +151,7 @@
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ query })
+                        body: JSON.stringify({ query: query })
                     })
                     .then(response => response.json())
                     .then(data => {
