@@ -57,6 +57,7 @@
                     <th>ID</th>
                     <th>Name</th>
                     <th>Description</th>
+                    <th>Owner</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -92,9 +93,8 @@
             const greetingDiv = document.getElementById('greeting')  ;
             greetingDiv.textContent = `Hello, ${user.name}!`;
         }
-        
-        function table(data) {
 
+        function table(data, username,refresh) {
             const dogTableBody = document.querySelector('#dog-table tbody');
             dogTableBody.innerHTML = ''; // Clear previous content if any
             data.forEach(dog => {
@@ -103,32 +103,33 @@
                             <td>${dog.id}</td>
                             <td>${dog.name}</td>
                             <td>${dog.description}</td>
+                            <td>${dog.owner ? dog.owner : ''}</td>
                             <td><button class="action-button" data-id="${dog.id}">Adopt</button></td>
                         `;
                 dogTableBody.appendChild(row);
             });
 
-            // Add event listeners to adoption buttons
+            async function adopt(event) {
+                const dogId = event.target.getAttribute('data-id');
+                const adopted = await fetch(`/api/dogs/${dogId}/adoptions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({name: username})
+                })
+                if (adopted.ok) {
+                    alert(`Successfully adopted dog with ID: ${dogId}`);
+                    refresh()
+                    
+                }//
+                else {
+                    alert(`Failed to adopt dog with ID: ${dogId}`);
+                }
+
+            }
             const buttons = document.querySelectorAll('.action-button');
-            buttons.forEach(button => {
-                button.addEventListener('click', event => {
-                    const dogId = event.target.getAttribute('data-id');
-                    fetch(`/api/dogs/${dogId}/adoptions`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({name: "jlong"})
-                    })
-                        .then(response => {
-                            if (response.ok) {
-                                alert(`Successfully adopted dog with ID: ${dogId}`);
-                            } else {
-                                alert(`Failed to adopt dog with ID: ${dogId}`);
-                            }
-                        });
-                });
-            });
+            buttons.forEach(button => button.addEventListener('click', adopt));
         }
 
         
@@ -138,9 +139,11 @@
             greetings(user)
             
             // Fetch and display the dogs in the table
-            const dogs = (await (await fetch('/api/dogs')).json())
-            table(dogs)
-
+            async function reload() {
+                const dogs = (await(await fetch('/api/dogs')).json()).sort((a, b) => parseInt(a.id) - parseInt(b.id))
+                table(dogs, user['name'], reload)
+            }
+            await reload()
 
             // Handle search functionality
             document.getElementById('search-button').addEventListener('click', async () => {
@@ -151,7 +154,6 @@
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({query: query})
                     })).json()
-                    console.log('data: ' + JSON.stringify(data))
 
                     const searchResultsBody = document.querySelector('#search-results tbody');
                     searchResultsBody.innerHTML = ''; // Clear previous search results
