@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dog Adoption Center</title>
+    <style>
+        
+        body {
+            --padding: 20px;
+            font-family: Helvetica, Arial, sans-serif;
+            margin: var(--padding);
+        }
+        #greeting {
+            font-size:  1em;
+            margin-bottom:  var(--padding);
+        }
+        .container {
+            display: flex;
+        }
+        #dog-table, #search-results {
+            border-collapse: collapse;
+            width: 50%;
+            margin-right:  var(--padding);
+        }
+        #dog-table th, #dog-table td, #search-results th, #search-results td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        #dog-table th, #search-results th {
+            background-color: #f4f4f4;
+        }
+        .action-button {
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .action-button:hover {
+            background-color: #45a049;
+        }
+        #search-container {
+            margin-left:  var(--padding);
+        }
+    </style>
+</head>
+<body>
+    <div id="greeting">Hello, Guest!</div>
+
+    <div class="container">
+        <!-- Dog Table -->
+        <table id="dog-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Dynamic rows will be inserted here by JavaScript -->
+            </tbody>
+        </table>
+
+        <!-- Search Container -->
+        <div id="search-container">
+            <h3>Search Dogs</h3>
+            <input type="text" id="search-input" placeholder="Enter search prompt" />
+            <button id="search-button">Search</button>
+
+            <h4>Search Results</h4>
+            <table id="search-results">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Dynamic search results will be inserted here by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Fetch and display user information
+            fetch('/api/me')
+                .then(response => response.json())
+                .then(data => {
+                    const greetingDiv = document.getElementById('greeting');
+                    greetingDiv.textContent = `Hello, ${data.user}!`;
+                });
+
+            // Fetch and display the dogs in the table
+            fetch('/api/dogs')
+                .then(response => response.json())
+                .then(data => {
+                    const dogTableBody = document.querySelector('#dog-table tbody');
+                    dogTableBody.innerHTML = ''; // Clear previous content if any
+                    data.forEach(dog => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${dog.id}</td>
+                            <td>${dog.name}</td>
+                            <td>${dog.description}</td>
+                            <td><button class="action-button" data-id="${dog.id}">Adopt</button></td>
+                        `;
+                        dogTableBody.appendChild(row);
+                    });
+
+                    // Add event listeners to adoption buttons
+                    const buttons = document.querySelectorAll('.action-button');
+                    buttons.forEach(button => {
+                        button.addEventListener('click', event => {
+                            const dogId = event.target.getAttribute('data-id');
+                            fetch(`/api/dogs/${dogId}/adoptions`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ name: "jlong" })
+                            })
+                            .then(response => {
+                                if (response.ok) {
+                                    alert(`Successfully adopted dog with ID: ${dogId}`);
+                                } else {
+                                    alert(`Failed to adopt dog with ID: ${dogId}`);
+                                }
+                            });
+                        });
+                    });
+                });
+
+            // Handle search functionality
+            document.getElementById('search-button').addEventListener('click', () => {
+                const query = document.getElementById('search-input').value;
+                if (query.trim()) {
+                    fetch('/api/search', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ query })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        const searchResultsBody = document.querySelector('#search-results tbody');
+                        searchResultsBody.innerHTML = ''; // Clear previous search results
+                        data.forEach(item => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${item.id}</td>
+                                <td>${item.name}</td>
+                                <td>${item.description}</td>
+                            `;
+                            searchResultsBody.appendChild(row);
+                        });
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
