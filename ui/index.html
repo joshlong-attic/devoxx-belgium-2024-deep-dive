@@ -143,29 +143,26 @@
 
 
             // Handle search functionality
-            document.getElementById('search-button').addEventListener('click', () => {
+            document.getElementById('search-button').addEventListener('click', async () => {
                 const query = document.getElementById('search-input').value;
                 if (query.trim()) {
-                    fetch('/api/search', {
+                    const data = await (await fetch('/api/search', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ query: query })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        const searchResultsBody = document.querySelector('#search-results tbody');
-                        searchResultsBody.innerHTML = ''; // Clear previous search results
-                        data.forEach(item => {
-                            const row = document.createElement('tr');
-                            row.innerHTML = `
-                                <td>${item.id}</td>
-                                <td>${item.name}</td>
-                                <td>${item.description}</td>
-                            `;
-                            searchResultsBody.appendChild(row);
-                        });
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({query: query})
+                    })).json()
+                    console.log('data: ' + JSON.stringify(data))
+
+                    const searchResultsBody = document.querySelector('#search-results tbody');
+                    searchResultsBody.innerHTML = ''; // Clear previous search results
+                    data.forEach(item => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${item.id}</td>
+                            <td>${item.name}</td>
+                            <td>${item.description}</td>
+                        `;
+                        searchResultsBody.appendChild(row);
                     });
                 }
             });

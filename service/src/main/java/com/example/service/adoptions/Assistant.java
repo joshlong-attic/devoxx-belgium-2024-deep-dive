@@ -7,12 +7,13 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 @Configuration
 class Assistant {
@@ -51,12 +52,12 @@ class AssistantController {
     }
 
     @PostMapping("/search")
-    DogAdoptionSuggestion search(@RequestParam String query) {
-        return this.chatClient
+    Collection<DogAdoptionSuggestion> search(@RequestBody Map<String, String> query) {
+        return List.of(this.chatClient
                 .prompt()
-                .user(query)
+                .user(query.get("query"))
                 .call()
-                .entity(DogAdoptionSuggestion.class);
+                .entity(DogAdoptionSuggestion.class));
     }
 }
 
